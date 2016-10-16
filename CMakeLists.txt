@@ -116,7 +116,9 @@ if(${OPENAL_SUPPORT})
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	list(APPEND yquake2LinkerFlags "-lm")
+	if(NOT MSVC)
+		list(APPEND yquake2LinkerFlags "-lm")
+	endif()
 else()
 	list(APPEND yquake2LinkerFlags "-lm -rdynamic")
 endif()
@@ -290,6 +292,7 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/refresh/r_mesh.c
 	${CLIENT_SRC_DIR}/refresh/r_misc.c
 	${CLIENT_SRC_DIR}/refresh/r_model.c
+	${CLIENT_SRC_DIR}/refresh/r_pathtracing.c
 	${CLIENT_SRC_DIR}/refresh/r_scrap.c
 	${CLIENT_SRC_DIR}/refresh/r_surf.c
 	${CLIENT_SRC_DIR}/refresh/r_warp.c
@@ -419,8 +422,21 @@ set_target_properties(game PROPERTIES
 	)
 target_link_libraries(game ${yquake2LinkerFlags})
 
+if(MSVC)
+	SET(EXECUTABLE_TYPE WIN32)
+endif()
+
 # Main Quake 2 executable
-add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source} ${Backends-Generic-Source} ${Backends-Generic-Header})
+	# Create the pathtracing_shader_source.h header
+	add_custom_command(OUTPUT "generated/pathtracing_shader_source.h" 
+		COMMAND ${CMAKE_COMMAND} -DSHADER_SOURCE=${CMAKE_CURRENT_SOURCE_DIR}/src/client/refresh/pathtracer.glsl
+			-DSHADER_DEST=${CMAKE_CURRENT_BINARY_DIR}/generated/pathtracing_shader_source.h
+			-P ${CMAKE_CURRENT_SOURCE_DIR}/stringifyshaders.cmake 
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/client/refresh/pathtracer.glsl)
+	list(APPEND Client-Header "generated/pathtracing_shader_source.h")
+	set_source_files_properties(generated/pathtracing_shader_source.h PROPERTIES GENERATED true)
+
+add_executable(quake2 ${EXECUTABLE_TYPE} ${Client-Source} ${Client-Header} ${Platform-Specific-Source} ${Backends-Generic-Source} ${Backends-Generic-Header})
 set_target_properties(quake2 PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 	)
@@ -429,9 +445,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else()
 	target_link_libraries(quake2 ${yquake2LinkerFlags})
 endif()
+target_include_directories(quake2 PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 # Quake 2 Dedicated Server
-add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Source})
+add_executable(q2ded ${EXECUTABLE_TYPE} ${Server-Source} ${Server-Header} ${Platform-Specific-Source})
 set_target_properties(q2ded PROPERTIES
 	COMPILE_DEFINITIONS "DEDICATED_ONLY"
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release

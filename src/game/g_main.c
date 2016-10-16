@@ -26,6 +26,12 @@
 
 #include "header/local.h"
 
+#ifdef _MSC_VER
+#	define GAME_API _declspec(dllexport)
+#else
+#	define GAME_API
+#endif
+
 game_locals_t game;
 level_locals_t level;
 game_import_t gi;
@@ -111,7 +117,7 @@ ShutdownGame(void)
  * with all entry points and global
  * variables
  */
-game_export_t *
+GAME_API game_export_t *
 GetGameAPI(game_import_t *import)
 {
 	gi = *import;

@@ -79,6 +79,14 @@
  #define LIBGL "libGL.so.1"
 #endif
 
+#ifdef _MSC_VER
+ #define snprintf _snprintf
+ #define __func__ __FUNCTION__
+
+ // inline is not a keyword in the pure C on MSVC 12.0
+ #define inline __inline
+#endif
+
 
 /* ================================================================== */
 

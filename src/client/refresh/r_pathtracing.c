@@ -2832,9 +2832,17 @@ InitRandom(void)
 	int i;
 	static const int texture_size = PT_RAND_TEXTURE_SIZE;
 	const int num_layers = GetRandTextureLayers();
-	GLubyte texels[texture_size * texture_size * 2 * num_layers];
+	const int texels_size = texture_size * texture_size * 2 * num_layers;
+#ifdef _MSC_VER
+	// MSVC 12 does not allow to specify an array size with const variables 
+	assert(num_layers < 16);
+	GLubyte texels[PT_RAND_TEXTURE_SIZE * PT_RAND_TEXTURE_SIZE * 2 * 16];
+#else
+	GLubyte texels[texels_size];
+#endif
 	
-	for (i = 0; i < sizeof(texels) / sizeof(texels[0]); ++i)
+	
+	for (i = 0; i < texels_size; ++i)
 		texels[i] = randk();
 	
 	glGenTextures(1, &pt_rand_texture);

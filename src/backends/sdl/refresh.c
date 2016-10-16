@@ -370,14 +370,16 @@ static qboolean GetWindowSize(int* w, int* h)
 		return false;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_DisplayMode m;
-	if(SDL_GetWindowDisplayMode(window, &m) != 0)
 	{
-		VID_Printf(PRINT_ALL, "Can't get Displaymode: %s\n", SDL_GetError());
-		return false;
+		SDL_DisplayMode m;
+		if (SDL_GetWindowDisplayMode(window, &m) != 0)
+		{
+			VID_Printf(PRINT_ALL, "Can't get Displaymode: %s\n", SDL_GetError());
+			return false;
+		}
+		*w = m.w;
+		*h = m.h;
 	}
-	*w = m.w;
-	*h = m.h;
 #else
 	*w = window->w;
 	*h = window->h;

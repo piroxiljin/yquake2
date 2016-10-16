@@ -28,6 +28,10 @@
 
 #include "../header/shared.h"
 
+#ifdef _MSC_VER
+ #define strcasecmp stricmp
+#endif
+
 #define DEG2RAD(a) (a * M_PI) / 180.0F
 
 vec3_t vec3_origin = {0, 0, 0};
